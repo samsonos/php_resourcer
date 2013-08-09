@@ -1,0 +1,329 @@
+<?php
+namespace samson\resourcer;
+
+use samson\core\iModule;
+use samson\core\File;
+use \samson\core\ExternalModule;
+
+/**
+ * Класс для определения, построения и поиска путей к ресурсам
+ * системы. Класс предназначен для формирования УНИКАЛЬНЫХ URL
+ * описывающих путь к ресурсу веб-приложения/модуля независимо 
+ * от его расположения на HDD.
+ * 
+ * Создавая возможность один рас описать путь вида:
+ * 	ИМЯ_РЕСУРСА - ИМЯ_ВЕБПРИЛОЖЕНИЯ - ИМЯ_МОДУЛЯ 
+ * 
+ * И больше не задумываться об реальном(физическом) местоположении 
+ * ресурса 
+ *
+ * @package SamsonPHP
+ * @author Vitaly Iegorov <vitalyiegorov@gmail.com>
+ * @author Nikita Kotenko <nick.w2r@gmail.com>
+ * @version 1.0
+ */
+class ResourceRouter extends ExternalModule
+{	
+	/** Коллекция маршрутов к модулям */
+	public static $routes = array();
+		
+	/** Коллекция MIME типов для формирования заголовков */
+	public static $mime = array
+	(
+		'css' 	=> 'text/css',
+		'woff' 	=> 'application/x-font-woff',
+		'otf' 	=> 'application/octet-stream',
+		'ttf' 	=> 'application/octet-stream',
+		'eot' 	=> 'application/vnd.ms-fontobject',
+		'js'	=> 'application/x-javascript',
+		'htm'	=> 'text/html;charset=utf-8',
+		'htc'	=> 'text/x-component',
+		'jpg'	=> 'image/jpeg',
+		'png'	=> 'image/png',
+		'jpg' 	=> 'image/jpg',
+		'gif'	=> 'image/gif',
+		'txt'	=> 'text/plain',
+		'pdf'	=> 'application/pdf',
+		'rtf'	=> 'application/rtf',
+		'doc'	=> 'application/msword',
+		'xls'	=> 'application/msexcel',
+		'xls' 	=> 'application/vnd.ms-excel',
+		'xlsx'	=> 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+		'docx'	=> 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+	);
+	
+	/** Идентификатор модуля */
+	protected $id = 'resourcer';
+	
+	/** Автор модуля */
+	protected $author = array( 'Vitaly Iegorov', 'Nikita Kotenko');
+	
+	/** Версия модуля */
+	protected $version = '1.1.0';
+	
+	/** Folder for storing resources cached files */
+	public $cache_dir = 'cache';
+	
+	/** Cached resources path collection */
+	public $cached = array();
+	
+	/** Collection of updated cached resources for notification of changes */
+	public $updated = array();
+	
+	/** Pointer to processing module */
+	private $c_module;	
+	
+	/**
+	 * Core render handler for including CSS and JS resources to html
+	 * 
+	 * @param sting $view View content
+	 * @param array $data View data
+	 * @return string Processed view content
+	 */
+	public function renderer( $view, array $data = array(), iModule $m = null )
+	{
+		// !! all cached resources are saved in local module location not depending on the specific
+		// module, because all resources are gathered together at oneplace
+		
+		// TODO: Разобраться с путями к ресурсам, может создать методы которые будут из одног овида переводить пути в другой?
+		
+		// Define resource urls
+		$css = self::url($this->cached['css'],'local');
+		$js = self::url($this->cached['js'],'local');
+				
+		//TODO: Прорисовка зависит от текущего модуля, сделать єто через параметр прорисовщика
+		// If called from compressor
+		if( $m->id() == 'compressor' || $m->id() == 'deploy' ) 
+		{
+			$css = url()->base().basename($this->cached['css']);
+			$js = url()->base().basename($this->cached['js']);
+		}
+		else if( is_a( $m, ns_classname( 'LocalModule', 'samson\core')) && !__SAMSON_REMOTE_APP )
+		{			
+			$css = url()->base().$this->cached['css'];
+			$js = url()->base().$this->cached['js'];
+		}
+		
+		// Соберем "правильно" все CSS ресурсы модулей
+		$head_html = "\n".'<link type="text/css" rel="stylesheet" href="'.$css.'">';
+		// Соберем "правильно" все JavaScript ресурсы модулей
+		$head_html .= "\n".'<script type="text/javascript" src="'.$js.'"></script>';
+		
+		// Подключим ресурсы в тег HEAD если он есть
+		$view = str_ireplace( '</head>', $head_html.'</head>', $view );
+		
+		//elapsed('Rendering view =)');
+		
+		return $view;
+	}
+		
+	
+	/**	@see ModuleConnector::init() */
+	public function init( array $params = array() )
+	{
+		parent::init( $params );	
+		
+		// Создадим имя файла содержащего пути к модулям
+		$md5_file = getcwd().'/'.md5( implode('', array_keys(s()->module_stack))).'.map';	
+
+		// Если такого файла нет
+		if ( ! file_exists( $md5_file ) )
+		{
+			// Удалим все файлы с расширением map 
+			foreach ( File::dir( getcwd(), 'map' ) as $file ) unlink( $file );					
+				
+			// Заполним масив с путями модулей
+			foreach (s()->module_stack as $id => $module ) self::$routes[ $id ] = $module->path(); 
+			
+			// Запишем коллекцию маршрутов в файл
+			file_put_contents( $md5_file, serialize( self::$routes ));			
+		}		
+		
+		// Cache main web resources
+		foreach ( array('js','css') as $rt ) 
+		{				
+			$hash_name = '';			
+			
+			// Iterate gathered namespaces for their resources
+			foreach ( s()->load_stack as $ns => & $data )
+			{
+				// If nessesar resources has been collected
+				if( isset( $data['resources'][ $rt ] ) ) foreach ( $data['resources'][ $rt ] as & $resource )
+				{
+					// Created string with last resource modification time
+					$hash_name .= filemtime( $resource );
+				}				
+			}					
+			
+			// Get hash that's describes recource status
+			$hash_name = md5( $hash_name ).'.'.$rt;		
+		
+			// Build relative path to resource file that is being cached 
+			$rel_path = $this->cache_dir.'/'.$rt.'/'.$hash_name;			
+			
+			// Build full path
+			$path = s()->path().$rel_path;		
+			
+			// If cached resource file does not exists
+			if( ! file_exists( $path ) )
+			{	
+				// Get directory path
+				$dir = pathname( $path );
+				
+				// Create folder
+				if( ! file_exists( $dir )) mkdir( $dir, 0755, TRUE );
+				//  Clear folder
+				else File::clear( $dir );
+				
+				// Move local module to the end of the load stack
+				$l = s()->load_stack['local'];
+				unset(s()->load_stack['local']);
+				s()->load_stack['local'] = $l;
+			
+				// Read content of resource files
+				$content = '';
+				foreach ( s()->load_stack as $ns => & $data ) 
+				{						
+					// Pointer to module-owner
+					$this->c_module = & s()->module( $data['id'] );
+					
+					//trace($ns);
+						
+					// If this ns has resources of specified type
+					if( isset($data['resources'][ $rt ] ) ) foreach ( $data['resources'][ $rt ] as $resource ) 
+					{			
+						//trace($resource);
+						
+						// Read resource file
+						$c = file_get_contents( $resource )."\n";						
+						
+						// Rewrite url in css
+						if( $rt == 'css')
+						{
+							$c = preg_replace_callback( '/url\s*\(\s*(\'|\")?([^\)\s\'\"]+)(\'|\")?\s*\)/i', array( $this, 'src_replace_callback'), $c );
+						}		
+	
+						// Gather processed resource text together
+						$content .= $c;
+					}
+				}
+				
+				// Fix updated resource file with new path to it
+				$this->updated[ $rt ] = $path;				
+
+				// Запишем содержание нового "собранного" ресурса
+				file_put_contents( $path, $content );		
+			}
+			
+			// Save path to resource cache
+			$this->cached[ $rt ] = $rel_path;
+		}	
+		
+		// Register view renderer
+		s()->renderer( array( $this, 'renderer') );		
+	}
+	
+	/** Callback for CSS url rewriting */
+	public function src_replace_callback( $matches )
+	{
+		// Если мы нашли шаблон - переберем все найденные патерны
+		if( isset( $matches[2]) )
+		{
+			$_url = $matches[2];
+			
+			// Получим путь к ресурсу используя маршрутизацию
+			$url = str_replace('../','', $matches[2] );		
+
+			//trace(get_class($this->c_module).'-'.$url);;
+										
+			// Always rewrite url's for external modules
+			if( is_a( $this->c_module, ns_classname('ExternalModule','samson\core')) ) 
+			{
+				$url = self::url( $url, $this->c_module );
+				//trace('external module url:'.$url);
+			}
+			// Always rewrite url's for remote web applications
+			else if( __SAMSON_REMOTE_APP )
+			{
+				$url = self::url( $url, $this->c_module );
+				//trace('remote web-app url:'.$url);
+			}
+			// Do not rewrite url's for local resources
+			else if( is_a($this->c_module, ns_classname('LocalModule','samson\core'))) 
+			{
+				$url = url()->base().$url;
+				//trace('local module url:'.$url);
+			}
+
+			return 'url("'.$url.'")';
+		}
+	}
+	
+	/**
+	 * Получить путь к ресурсу веб-приложения/модуля по унифицированному URL 
+	 *
+	 * @param string $path 			Относительный путь к ресурсу модуля/приложения
+	 * @param string $destination 	Имя маршрута из таблицы маршрутизации
+	 * @return string Физическое относительное расположение ресурса в системе
+	 */
+	public static function parse( $path, $destination = 'local' )
+	{		
+		// Найдем в рабочей папке приложения файл с маршрутами
+		foreach ( File::dir( getcwd(), 'map', '', $result, 1 ) as $file ) 
+		{			
+			// Прочитаем файл с маршрутами и загрузим маршруты
+			self::$routes = unserialize( file_get_contents( $file ) );		
+			
+			// Остановим цикл
+			break;
+		}		
+		
+		// Если передан слеш в пути - отрежим его т.к. пути к модулям его обязательно включают
+		if( $path[0] == '/' ) $path = substr( $path, 1 );
+		
+		// Сформируем путь к модулю/предложению, если он задан
+		// и добавим относительный путь к самому ресурсу
+		$path = ( isset( self::$routes[$destination] ) ? self::$routes[ $destination ] : '').$path;
+		
+		// Вернем полученный путь
+		return $path;				
+	}
+	
+	/**
+	 * Parse URL to get module name and relative path to resource
+	 * @param string $url String for parsing
+	 * @return array Array [0] => module name, [1]=>relative_path
+	 */
+	public static function parseURL( $url, & $module = null, & $path = null  )
+	{
+		// If we have URL to resource router
+		if( preg_match('/resourcer\/(?<module>.+)\?p=(?<path>.+)/ui', $url, $matches ))
+		{
+			$module = $matches['module'];
+			$path = $matches['path'];
+			
+			return true;
+		}	
+		else return false;	
+	}
+	
+	
+	
+	/**
+	 * Получить уникальный URL однозначно определяющий маршрут к ресурсу
+	 * веб-приложения/модуля
+	 *
+	 * @param string $path 		Путь к требуемому ресурсу вннутри веб-приложения/модуля
+	 * @param string $module	Имя модуля которому принадлежит ресурс
+	 * @param string $app		Имя веб-приложения которому принадлежит ресурс
+	 * @return string Унифицированный URL для получения ресурса веб-приложения/модуля
+	 */
+	public static function url( $path, $_module = NULL  )
+	{				
+		// Безопасно получим переданный модуль
+		$_module = s()->module( $_module );		
+				
+		// Сформируем URL-маршрут для доступа к ресурсу		
+		return url()->base().'resourcer/'.($_module->id()!= 'resourcer'?$_module->id():'').'?p='.$path;
+	}
+}
