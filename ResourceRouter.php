@@ -176,23 +176,24 @@ class ResourceRouter extends ExternalModule
 				else File::clear( $dir );
 				
 				// Move local module to the end of the load stack
-				$l = s()->load_stack['local'];
-				unset(s()->load_stack['local']);
-				s()->load_stack['local'] = $l;
+				$l = s()->load_module_stack['local'];
+				unset(s()->load_module_stack['local']);
+				s()->load_module_stack['local'] = $l;
+				
+				trace(s()->load_module_stack);
 			
 				// Read content of resource files
 				$content = '';
-				foreach ( s()->load_stack as $ns => & $data ) 
-				{						
-					// Pointer to module-owner
-					$this->c_module = & s()->module( $data['id'] );
+				foreach ( s()->load_module_stack as $id => & $data ) 
+				{		
+					$this->c_module = & m( $id );
 					
 					//trace($ns);
 						
 					// If this ns has resources of specified type
 					if( isset($data['resources'][ $rt ] ) ) foreach ( $data['resources'][ $rt ] as $resource ) 
-					{			
-						//trace($resource);
+					{							
+						
 						
 						// Read resource file
 						$c = file_get_contents( $resource )."\n";						
@@ -234,8 +235,8 @@ class ResourceRouter extends ExternalModule
 			// Получим путь к ресурсу используя маршрутизацию
 			$url = str_replace('../','', $matches[2] );		
 
-			//trace(get_class($this->c_module).'-'.$url);;
-										
+			//trace($this->c_module->id.'-'.get_class($this->c_module).'-'.$url.'-'.is_a( $this->c_module, ns_classname('ExternalModule','samson\core')));;		
+			
 			// Always rewrite url's for external modules
 			if( is_a( $this->c_module, ns_classname('ExternalModule','samson\core')) ) 
 			{
