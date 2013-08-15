@@ -80,7 +80,7 @@ class ResourceRouter extends ExternalModule
 	 * @param array $data View data
 	 * @return string Processed view content
 	 */
-	public function renderer( $view, array $data = array(), iModule $m = null )
+	public function renderer( $view, $data = array(), iModule $m = null )
 	{
 		// !! all cached resources are saved in local module location not depending on the specific
 		// module, because all resources are gathered together at oneplace
@@ -180,7 +180,7 @@ class ResourceRouter extends ExternalModule
 				unset(s()->load_module_stack['local']);
 				s()->load_module_stack['local'] = $l;
 				
-				trace(s()->load_module_stack);
+				//trace(s()->load_module_stack);
 			
 				// Read content of resource files
 				$content = '';
