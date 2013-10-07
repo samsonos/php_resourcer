@@ -153,7 +153,9 @@ class ResourceRouter extends ExternalModule
 					// Created string with last resource modification time
 					$hash_name .= filemtime( $resource );
 				}				
-			}					
+			}		
+
+			
 			
 			// Get hash that's describes recource status
 			$hash_name = md5( $hash_name ).'.'.$rt;		
@@ -176,25 +178,35 @@ class ResourceRouter extends ExternalModule
 				else File::clear( $dir );
 				
 				// Move local module to the end of the load stack
-				$l = s()->load_module_stack['local'];
-				unset(s()->load_module_stack['local']);
-				s()->load_module_stack['local'] = $l;
+				//$l = s()->load_module_stack['local'];
+				//unset(s()->load_module_stack['local']);
+				//s()->load_module_stack['local'] = $l;
 				
+				//trace(s()->load_module_stack['local']['resources'][ $rt ]);
 				//trace(s()->load_module_stack);
-			
+				//trace(array_keys(s()->load_module_stack ));
+				
 				// Read content of resource files
 				$content = '';
-				foreach ( s()->load_module_stack as $id => & $data ) 
+				foreach ( s()->load_module_stack as $id => $data ) 
 				{		
+					//trace($ns);
+					//trace($id);
+					//trace(s()->load_module_stack['local']['resources'][ $rt ]);
+					//trace($data);
+					//if($id == 'local') trace($data);
+					
+					//trace($data);
+					
+					
 					$this->c_module = & m( $id );
 					
-					//trace($ns);
-						
-					// If this ns has resources of specified type
-					if( isset($data['resources'][ $rt ] ) ) foreach ( $data['resources'][ $rt ] as $resource ) 
+					// If this ns has resources of specified type					
+					if( isset($data['resources'][ $rt ] ) ) foreach ( $data['resources'][ $rt ] as $resource )
+					//for ($i = 0; $i < sizeof($data['resources'][ $rt ]); $i++) 
 					{							
-						
-						
+						//$resource = $data['resources'][ $rt ][$i];
+						//trace($resource);
 						// Read resource file
 						$c = file_get_contents( $resource )."\n";						
 						
@@ -207,6 +219,7 @@ class ResourceRouter extends ExternalModule
 						// Gather processed resource text together
 						$content .= $c;
 					}
+					
 				}
 				
 				// Fix updated resource file with new path to it
