@@ -73,6 +73,12 @@ class ResourceRouter extends ExternalModule
 	/** Pointer to processing module */
 	private $c_module;	
 	
+	/** Default controller */
+	public function __BASE()
+	{
+		$this->init();
+	}
+	
 	/**
 	 * Core render handler for including CSS and JS resources to html
 	 * 
@@ -140,22 +146,23 @@ class ResourceRouter extends ExternalModule
 		}		
 		
 		// Cache main web resources
-		foreach ( array('js','css') as $rt ) 
+		foreach ( array(array('js'),array('css','less')) as $rts ) 
 		{				
+			// Get first resource type as extension
+			$rt = $rts[0];
+			
 			$hash_name = '';			
 			
 			// Iterate gathered namespaces for their resources
 			foreach ( s()->load_stack as $ns => & $data )
 			{
 				// If nessesar resources has been collected
-				if( isset( $data['resources'][ $rt ] ) ) foreach ( $data['resources'][ $rt ] as & $resource )
+				foreach ( $rts as $_rt ) if( isset( $data['resources'][ $_rt ] ) ) foreach ( $data['resources'][ $_rt ] as & $resource )
 				{
 					// Created string with last resource modification time
 					$hash_name .= filemtime( $resource );
 				}				
-			}		
-
-			
+			}				
 			
 			// Get hash that's describes recource status
 			$hash_name = md5( $hash_name ).'.'.$rt;		
@@ -173,40 +180,21 @@ class ResourceRouter extends ExternalModule
 				$dir = pathname( $path );
 				
 				// Create folder
-				if( ! file_exists( $dir )) mkdir( $dir, 0755, TRUE );
+				if( ! file_exists( $dir )) mkdir( $dir, 0777, TRUE );
 				//  Clear folder
-				else File::clear( $dir );
-				
-				// Move local module to the end of the load stack
-				//$l = s()->load_module_stack['local'];
-				//unset(s()->load_module_stack['local']);
-				//s()->load_module_stack['local'] = $l;
-				
-				//trace(s()->load_module_stack['local']['resources'][ $rt ]);
-				//trace(s()->load_module_stack);
-				//trace(array_keys(s()->load_module_stack ));
+				else File::clear( $dir );		
 				
 				// Read content of resource files
 				$content = '';
 				foreach ( s()->load_module_stack as $id => $data ) 
-				{		
-					//trace($ns);
-					//trace($id);
-					//trace(s()->load_module_stack['local']['resources'][ $rt ]);
-					//trace($data);
-					//if($id == 'local') trace($data);
-					
-					//trace($data);
-					
-					
+				{							
 					$this->c_module = & m( $id );
 					
 					// If this ns has resources of specified type					
-					if( isset($data['resources'][ $rt ] ) ) foreach ( $data['resources'][ $rt ] as $resource )
-					//for ($i = 0; $i < sizeof($data['resources'][ $rt ]); $i++) 
-					{							
-						//$resource = $data['resources'][ $rt ][$i];
-						//trace($resource);
+					foreach ( $rts as $_rt ) if( isset($data['resources'][ $_rt ] ) ) foreach ( $data['resources'][ $_rt ] as $resource )					
+					{			
+						elapsed($resource);	
+											
 						// Read resource file
 						$c = file_get_contents( $resource )."\n";						
 						
@@ -218,8 +206,7 @@ class ResourceRouter extends ExternalModule
 	
 						// Gather processed resource text together
 						$content .= $c;
-					}
-					
+					}					
 				}
 				
 				// Fix updated resource file with new path to it
