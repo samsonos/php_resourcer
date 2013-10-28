@@ -62,7 +62,7 @@ class ResourceRouter extends ExternalModule
 	protected $version = '1.1.0';
 	
 	/** Folder for storing resources cached files */
-	public $cache_dir = 'cache';
+	public $cache_dir = __SAMSON_CACHE_PATH;
 	
 	/** Cached resources path collection */
 	public $cached = array();
@@ -193,7 +193,7 @@ class ResourceRouter extends ExternalModule
 					// If this ns has resources of specified type					
 					foreach ( $rts as $_rt ) if( isset($data['resources'][ $_rt ] ) ) foreach ( $data['resources'][ $_rt ] as $resource )					
 					{			
-						elapsed($resource);	
+						//elapsed($resource);	
 											
 						// Read resource file
 						$c = file_get_contents( $resource )."\n";						
