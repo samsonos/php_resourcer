@@ -59,9 +59,10 @@ class ResourceRouter extends ExternalModule
 	protected $author = array( 'Vitaly Iegorov', 'Nikita Kotenko');
 	
 	/** Версия модуля */
-	protected $version = '1.1.0';
-	
+	protected $version = '1.1.1';	
+		
 	/** Folder for storing resources cached files */
+	// TODO: Change to module::cache_path
 	public $cache_dir = __SAMSON_CACHE_PATH;
 	
 	/** Cached resources path collection */
@@ -121,28 +122,24 @@ class ResourceRouter extends ExternalModule
 		//elapsed('Rendering view =)');
 		
 		return $view;
-	}
-		
+	}		
 	
 	/**	@see ModuleConnector::init() */
 	public function init( array $params = array() )
 	{
-		parent::init( $params );	
-		
+		parent::init( $params );
+			
 		// Создадим имя файла содержащего пути к модулям
-		$md5_file = getcwd().'/'.md5( implode('', array_keys(s()->module_stack))).'.map';	
-
+		$map_file = md5( implode( '', array_keys(s()->module_stack))).'.map';	
+		
 		// Если такого файла нет
-		if ( ! file_exists( $md5_file ) )
-		{
-			// Удалим все файлы с расширением map 
-			foreach ( File::dir( getcwd(), 'map' ) as $file ) unlink( $file );					
-				
-			// Заполним масив с путями модулей
+		if ( $this->cache_refresh( $map_file ) )
+		{					
+			// Fill in routes collection
 			foreach (s()->module_stack as $id => $module ) self::$routes[ $id ] = $module->path(); 
 			
-			// Запишем коллекцию маршрутов в файл
-			file_put_contents( $md5_file, serialize( self::$routes ));			
+			// Save routes to file
+			file_put_contents( $map_file, serialize( self::$routes ));			
 		}		
 		
 		// Cache main web resources
@@ -270,7 +267,7 @@ class ResourceRouter extends ExternalModule
 	public static function parse( $path, $destination = 'local' )
 	{		
 		// Найдем в рабочей папке приложения файл с маршрутами
-		foreach ( File::dir( getcwd(), 'map', '', $result, 1 ) as $file ) 
+		foreach ( File::dir( __SAMSON_CWD__.__SAMSON_CACHE_PATH, 'map', '', $result ) as $file ) 
 		{			
 			// Прочитаем файл с маршрутами и загрузим маршруты
 			self::$routes = unserialize( file_get_contents( $file ) );		
