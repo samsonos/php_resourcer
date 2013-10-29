@@ -60,10 +60,6 @@ class ResourceRouter extends ExternalModule
 	
 	/** Версия модуля */
 	protected $version = '1.1.1';	
-		
-	/** Folder for storing resources cached files */
-	// TODO: Change to module::cache_path
-	public $cache_dir = __SAMSON_CACHE_PATH;
 	
 	/** Cached resources path collection */
 	public $cached = array();
@@ -88,27 +84,17 @@ class ResourceRouter extends ExternalModule
 	 * @return string Processed view content
 	 */
 	public function renderer( $view, $data = array(), iModule $m = null )
-	{
-		// !! all cached resources are saved in local module location not depending on the specific
-		// module, because all resources are gathered together at oneplace
-		
-		// TODO: Разобраться с путями к ресурсам, может создать методы которые будут из одног овида переводить пути в другой?
-		
+	{		
 		// Define resource urls
-		$css = self::url($this->cached['css'],'local');
-		$js = self::url($this->cached['js'],'local');
+		$css 	= url()->base().$this->cached['css'];
+		$js 	= url()->base().$this->cached['js'];
 				
-		//TODO: Прорисовка зависит от текущего модуля, сделать єто через параметр прорисовщика
+		// TODO: Прорисовка зависит от текущего модуля, сделать єто через параметр прорисовщика
 		// If called from compressor
 		if( $m->id() == 'compressor' || $m->id() == 'deploy' ) 
 		{
 			$css = url()->base().basename($this->cached['css']);
 			$js = url()->base().basename($this->cached['js']);
-		}
-		else if( is_a( $m, ns_classname( 'LocalModule', 'samson\core')) && !__SAMSON_REMOTE_APP )
-		{			
-			$css = url()->base().$this->cached['css'];
-			$js = url()->base().$this->cached['js'];
 		}
 		
 		// Соберем "правильно" все CSS ресурсы модулей
@@ -159,28 +145,16 @@ class ResourceRouter extends ExternalModule
 					// Created string with last resource modification time
 					$hash_name .= filemtime( $resource );
 				}				
-			}				
-			
-			// Get hash that's describes recource status
-			$hash_name = md5( $hash_name ).'.'.$rt;		
-		
-			// Build relative path to resource file that is being cached 
-			$rel_path = $this->cache_dir.'/'.$rt.'/'.$hash_name;			
-			
-			// Build full path
-			$path = s()->path().$rel_path;		
-			
-			// If cached resource file does not exists
-			if( ! file_exists( $path ) )
-			{	
-				// Get directory path
-				$dir = pathname( $path );
-				
-				// Create folder
-				if( ! file_exists( $dir )) mkdir( $dir, 0777, TRUE );
-				//  Clear folder
-				else File::clear( $dir );		
-				
+			}		
+					
+ 			// Get hash that's describes recource status
+ 			$hash_name = md5( $hash_name ).'.'.$rt;	
+ 			
+ 			$path = $hash_name;
+ 			
+			// Check if cache file has to be updated
+			if( $this->cache_refresh( $path ) )
+			{					
 				// Read content of resource files
 				$content = '';
 				foreach ( s()->load_module_stack as $id => $data ) 
@@ -214,7 +188,7 @@ class ResourceRouter extends ExternalModule
 			}
 			
 			// Save path to resource cache
-			$this->cached[ $rt ] = $rel_path;
+			$this->cached[ $rt ] = __SAMSON_CACHE_PATH.'/'.$this->id.'/'.$hash_name;
 		}	
 		
 		// Register view renderer
@@ -268,13 +242,13 @@ class ResourceRouter extends ExternalModule
 	{		
 		// Найдем в рабочей папке приложения файл с маршрутами
 		foreach ( File::dir( __SAMSON_CWD__.__SAMSON_CACHE_PATH, 'map', '', $result ) as $file ) 
-		{			
+		{						
 			// Прочитаем файл с маршрутами и загрузим маршруты
 			self::$routes = unserialize( file_get_contents( $file ) );		
 			
 			// Остановим цикл
 			break;
-		}		
+		}	
 		
 		// Если передан слеш в пути - отрежим его т.к. пути к модулям его обязательно включают
 		if( $path[0] == '/' ) $path = substr( $path, 1 );
@@ -304,8 +278,6 @@ class ResourceRouter extends ExternalModule
 		}	
 		else return false;	
 	}
-	
-	
 	
 	/**
 	 * Получить уникальный URL однозначно определяющий маршрут к ресурсу

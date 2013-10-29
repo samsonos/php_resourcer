@@ -4,7 +4,7 @@ use samson\resourcer\ResourceRouter;
 /**
  * Route(Маршрут) - Получить экземпляр класса для работы с маршрутами системы
  * @see ResourceRouter
- *
+ * @deprecated 
  * @return ResourceRouter Экземпляр класса для работы с маршрутами системы
  */
 function & route(){	static $_v; return ( $_v = isset($_v) ? $_v : new ResourceRouter()); }

@@ -25,7 +25,7 @@ function resourcer__HANDLER( $module = 'local' )
 
 	// Получить путь к ресурсу системы по URL
 	$filename = ResourceRouter::parse( $_GET['p'], $module );	
-			
+				
 	// Проверим существует ли ресурс реально
 	if( file_exists( $filename ) )
 	{			
