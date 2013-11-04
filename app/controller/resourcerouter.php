@@ -86,16 +86,21 @@ function resourcer_table()
 {
 	s()->async( true );	
 	
-	if ( file_exists(getcwd())&& ($handle = opendir(getcwd())) )
+	$path = __SAMSON_CWD__.__SAMSON_CACHE_PATH.'/resourcer/';
+	
+	if ( file_exists($path)&& ($handle = opendir($path)) )
 	{		
 		//Именно этот способ чтения элементов каталога является правильным. 
 		while ( FALSE !== ( $entry = readdir( $handle ) ) )
 		{
+			
 			// Найдем фацл с расширением map
 			if (pathinfo( $entry, PATHINFO_EXTENSION ) == 'map')
 			{
-				$text = file($entry);
+				$text = file( $path.$entry);
+				
 				$table = isset($text[0])?unserialize($text[0]) : array();
+				
 				break;
 			}
 		}
