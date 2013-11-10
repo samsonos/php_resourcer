@@ -86,15 +86,15 @@ class ResourceRouter extends ExternalModule
 	public function renderer( $view, $data = array(), iModule $m = null )
 	{		
 		// Define resource urls
-		$css 	= url()->base().$this->cached['css'];
-		$js 	= url()->base().$this->cached['js'];
+		$css = $this->cached['css'];
+		$js = $this->cached['js'];
 				
 		// TODO: Прорисовка зависит от текущего модуля, сделать єто через параметр прорисовщика
 		// If called from compressor
 		if( $m->id() == 'compressor' || $m->id() == 'deploy' ) 
 		{
-			$css = url()->base().basename($this->cached['css']);
-			$js = url()->base().basename($this->cached['js']);
+			$css = basename($this->cached['css']);
+			$js = basename($this->cached['js']);
 		}
 		
 		// Соберем "правильно" все CSS ресурсы модулей
