@@ -103,7 +103,7 @@ class ResourceRouter extends ExternalModule
 		$head_html .= "\n".'<script type="text/javascript" src="'.$js.'"></script>';
 		
 		// Подключим ресурсы в тег HEAD если он есть
-		$view = str_ireplace( '</head>', $head_html.'</head>', $view );
+		$view = str_ireplace( '</head>', $head_html."\n".'</head>', $view );
 		
 		//elapsed('Rendering view =)');
 		
@@ -294,6 +294,6 @@ class ResourceRouter extends ExternalModule
 		$_module = s()->module( $_module );		
 				
 		// Сформируем URL-маршрут для доступа к ресурсу		
-		return url()->base().'resourcer/'.($_module->id()!= 'resourcer'?$_module->id():'').'?p='.$path;
+		return 'http://'.$_SERVER['HTTP_HOST'].url()->base().'resourcer/'.($_module->id()!= 'resourcer'?$_module->id():'').'?p='.$path;
 	}
 }
