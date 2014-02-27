@@ -93,8 +93,8 @@ class ResourceRouter extends ExternalModule
 		// If called from compressor
 		if( $m->id() == 'compressor' || $m->id() == 'deploy' ) 
 		{
-			$css = '/'.basename($this->cached['css']);
-			$js = '/'.basename($this->cached['js']);
+			$css = url()->base().basename($this->cached['css']);
+			$js = url()->base().basename($this->cached['js']);
 		}
 		
 		// Соберем "правильно" все CSS ресурсы модулей
