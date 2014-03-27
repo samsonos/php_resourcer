@@ -86,8 +86,8 @@ class ResourceRouter extends ExternalModule
 	public function renderer( $view, $data = array(), iModule $m = null )
 	{		
 		// Define resource urls
-		$css = $this->cached['css'];
-		$js = $this->cached['js'];
+		$css = url()->base().$this->cached['css'];
+		$js = url()->base().$this->cached['js'];
 				
 		// TODO: Прорисовка зависит от текущего модуля, сделать єто через параметр прорисовщика
 		// If called from compressor
@@ -167,16 +167,16 @@ class ResourceRouter extends ExternalModule
 						//elapsed($resource);	
 											
 						// Read resource file
-						$c = file_get_contents( $resource )."\n";						
+						$c = file_get_contents( $resource );						
 						
 						// Rewrite url in css
 						if( $rt == 'css')
 						{
 							$c = preg_replace_callback( '/url\s*\(\s*(\'|\")?([^\)\s\'\"]+)(\'|\")?\s*\)/i', array( $this, 'src_replace_callback'), $c );
-						}		
+						}	
 	
 						// Gather processed resource text together
-						$content .= $c;
+						$content .= "\n\r".$c;
 					}					
 				}
 				
