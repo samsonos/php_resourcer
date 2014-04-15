@@ -1,6 +1,9 @@
 {
 	"name":"samsonos/php_resourcer",
-	"author":[{"Vitaly Iegorov"},{"Nikita Kotenko"}],
+	"author":[
+		{"name":"Vitaly Iegorov"},
+		{"name":"Nikita Kotenko"}
+	],
 	"version":"1.1.1",
 	"require":{"samsonos/php_core:"*"},
 	"license":"Open Software License (OSL) v 3.0",
