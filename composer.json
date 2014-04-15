@@ -1,7 +1,7 @@
 {
 	"name":"samsonos/php_resourcer",
 	"author":[
-		{"name":"Vitaly Iegorov"},
+		{"name":"Vitaly Iegorov"}, 
 		{"name":"Nikita Kotenko"}
 	],
 	"version":"1.1.1",
