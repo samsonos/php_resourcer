@@ -242,6 +242,7 @@ class ResourceRouter extends ExternalModule
 	public static function parse( $path, $destination = 'local' )
 	{		
 		// Найдем в рабочей папке приложения файл с маршрутами
+        $result = array();
 		foreach ( File::dir( __SAMSON_CWD__.__SAMSON_CACHE_PATH, 'map', '', $result ) as $file ) 
 		{						
 			// Прочитаем файл с маршрутами и загрузим маршруты
