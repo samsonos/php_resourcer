@@ -129,25 +129,26 @@ class ResourceRouter extends ExternalModule
 		}		
 		
 		// Cache main web resources
-		foreach ( array(array('js'),array('css','less')) as $rts ) 
-		{				
+		foreach (array(array('js'),array('css','less'),array('coffee')) as $rts) {
 			// Get first resource type as extension
 			$rt = $rts[0];
 			
 			$hash_name = '';			
 			
 			// Iterate gathered namespaces for their resources
-			foreach ( s()->load_stack as $ns => & $data )
-			{
-				// If nessesar resources has been collected
-				foreach ( $rts as $_rt ) if( isset( $data['resources'][ $_rt ] ) ) foreach ( $data['resources'][ $_rt ] as & $resource )
-				{
-					// Created string with last resource modification time
-					$hash_name .= filemtime( $resource );
-				}				
+			foreach (s()->load_stack as $ns => & $data) {
+                // If necessary resources has been collected
+                foreach ($rts as $_rt) {
+                    if (isset($data['resources'][ $_rt ])) {
+                        foreach ($data['resources'][ $_rt ] as & $resource) {
+                            // Created string with last resource modification time
+                            $hash_name .= filemtime( $resource );
+                        }
+                    }
+                }
 			}		
 					
- 			// Get hash that's describes recource status
+ 			// Get hash that's describes resource status
  			$hash_name = md5( $hash_name ).'.'.$rt;	
  			
  			$path = $hash_name;
