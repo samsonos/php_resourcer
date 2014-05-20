@@ -97,13 +97,11 @@ class ResourceRouter extends ExternalModule
 			$js = url()->base().basename($this->cached['js']);
 		}
 		
-		// Соберем "правильно" все CSS ресурсы модулей
-		$head_html = "\n".'<link type="text/css" rel="stylesheet" href="'.$css.'">';
-		// Соберем "правильно" все JavaScript ресурсы модулей
-		$head_html .= "\n".'<script type="text/javascript" src="'.$js.'"></script>';
-		
-		// Подключим ресурсы в тег HEAD если он есть
-		$view = str_ireplace( '</head>', $head_html."\n".'</head>', $view );
+		// Put css link at the end of <head> page block
+		$view = str_ireplace( '</head>', "\n".'<link type="text/css" rel="stylesheet" href="'.$css.'">'."\n".'</head>', $view );
+
+        // Put javascript link in the end of the document
+        $view = str_ireplace( '</body>', "\n".'<script type="text/javascript" src="'.$js.'"></script>'."\n".'</body>', $view );
 		
 		//elapsed('Rendering view =)');
 		
