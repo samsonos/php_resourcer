@@ -26,6 +26,9 @@ class ResourceRouter extends ExternalModule
 {	
 	/** Коллекция маршрутов к модулям */
 	public static $routes = array();
+
+    /** @var string Marker for inserting generated javascript link */
+    public $javascriptMarker = '</body>';
 		
 	/** Коллекция MIME типов для формирования заголовков */
 	public static $mime = array
@@ -101,7 +104,7 @@ class ResourceRouter extends ExternalModule
 		$view = str_ireplace( '</head>', "\n".'<link type="text/css" rel="stylesheet" href="'.$css.'">'."\n".'</head>', $view );
 
         // Put javascript link in the end of the document
-        $view = str_ireplace( '</body>', "\n".'<script type="text/javascript" src="'.$js.'"></script>'."\n".'</body>', $view );
+        $view = str_ireplace( $this->javascriptMarker, "\n".'<script type="text/javascript" src="'.$js.'"></script>'."\n".$this->javascriptMarker, $view );
 		
 		//elapsed('Rendering view =)');
 		
