@@ -173,7 +173,7 @@ class ResourceRouter extends ExternalModule
 						
 						// Rewrite url in css
 						if( $rt == 'css')
-						{						
+						{							
 							$c = preg_replace_callback( '/url\s*\(\s*(\'|\")?([^\)\s\'\"]+)(\'|\")?\s*\)/i', array( $this, 'src_replace_callback'), $c );
 						}	
 	
@@ -214,22 +214,20 @@ class ResourceRouter extends ExternalModule
 			if( is_a( $this->c_module, ns_classname('ExternalModule','samson\core')) ) 
 			{
 				$url = self::url( $url, $this->c_module );
-				//elapsed('External module url rewriting:'.$_url.'-'.$url.'-'.__SAMSON_REMOTE_APP);
+				//trace('external module url:'.$url);
 			}
 			// Always rewrite url's for remote web applications
 			else if( __SAMSON_REMOTE_APP )
 			{
 				$url = self::url( $url, $this->c_module );
-				//elapsed('Remote app url rewriting:'.$_url.'-'.$url.'-'.__SAMSON_REMOTE_APP);
+				elapsed('remote web-app url:'.$url);
 			}
 			// Do not rewrite url's for local resources
 			else if( is_a($this->c_module, ns_classname('LocalModule','samson\core'))) 
 			{
 				$url = url()->base().$url;
-				//elapsed('Local module url rewriting:'.$_url.'-'.$url.'-'.__SAMSON_REMOTE_APP);
+				//trace('local module url:'.$url);
 			}
-			
-			
 
 			return 'url("'.$url.'")';
 		}
