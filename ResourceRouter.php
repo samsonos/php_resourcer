@@ -86,7 +86,7 @@ class ResourceRouter extends ExternalModule
      * @param array $data View data
      * @return string Processed view content
      */
-    public function renderer( $view, $data = array(), iModule $m = null )
+    public function renderer(&$view, $data = array(), iModule $m = null)
     {
         // Define resource urls
         $css = url()->base().$this->cached['css'];
@@ -195,8 +195,11 @@ class ResourceRouter extends ExternalModule
             $this->cached[ $rt ] = __SAMSON_CACHE_PATH.'/'.$this->id.'/'.$hash_name;
         }
 
+        // Subscribe to core rendered event
+        s()->subscribe('core.rendered', array( $this, 'renderer'));
+
         // Register view renderer
-        s()->renderer( array( $this, 'renderer') );
+        //s()->renderer( array( $this, 'renderer') );
     }
 
     /** Callback for CSS url rewriting */
