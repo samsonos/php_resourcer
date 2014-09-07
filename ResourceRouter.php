@@ -225,7 +225,6 @@ class ResourceRouter extends ExternalModule
             else if( __SAMSON_REMOTE_APP )
             {
                 $url = self::url( $url, $this->c_module );
-                elapsed('remote web-app url:'.$url);
             }
             // Do not rewrite url's for local resources
             else if( is_a($this->c_module, ns_classname('LocalModule','samson\core')))
