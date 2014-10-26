@@ -1,14 +1,27 @@
 {
 	"name":"samsonos/php_resourcer",
-	"author":[
-		{"name":"Vitaly Iegorov"}, 
-		{"name":"Nikita Kotenko"}
-	],
-	"version":"1.1.1",
-	"require":{"samsonos/php_core":"*"},
+    "description":"SamsonPHP static resources manager module",
+    "keywords": [ "resource", "static" ],
+    "authors":[
+        {
+            "name":"Vitaly Iegorov",
+            "email":"egorov@samsonos.com"
+        },
+        {
+            "name":"Kotenko Nikita",
+            "email":"kotenko@samsonos.com"
+        }
+    ],
+	"require":{
+        "samsonos/php_core":"*"
+    },
 	"license":"Open Software License (OSL) v 3.0",
 	"homepage":"http://samsonos.com/",
 	"autoload" : {
-        "files": ["global.php"]
+        "classmap" : ["src"],
+        "psr-0":{
+            "samson\\resourcer" : "src"
+        },
+        "files": ["src/global.php"]
     }
 }
