@@ -73,6 +73,9 @@ class ResourceRouter extends ExternalModule
     /** Pointer to processing module */
     private $c_module;
 
+    /** @var string Current processed resource   */
+    private $cResource;
+
     /** Default controller */
     public function __BASE()
     {
@@ -167,13 +170,14 @@ class ResourceRouter extends ExternalModule
                         if (isset($data['resources'][ $_rt ])) {
                             //TODO: If you will remove & from iterator - system will fail at last element
                             foreach ($data['resources'][ $_rt ] as & $resource) {
-                                elapsed($resource);
+                                // Store current processing resource
+                                $this->cResource = $resource;
+
                                 // Read resource file
                                 $c = file_get_contents( $resource );
 
                                 // Rewrite url in css
-                                if( $rt == 'css')
-                                {
+                                if( $rt == 'css') {
                                     $c = preg_replace_callback( '/url\s*\(\s*(\'|\")?([^\)\s\'\"]+)(\'|\")?\s*\)/i', array( $this, 'src_replace_callback'), $c );
                                 }
 
@@ -212,6 +216,19 @@ class ResourceRouter extends ExternalModule
 
             // Получим путь к ресурсу используя маршрутизацию
             $url = str_replace('../','', $matches[2] );
+
+            // Build real path to resource
+            $realPath = $this->c_module->path().$url;
+            // Try to find path in module root folder
+            if (!file_exists($realPath)) {
+                // Build path to "new" module public folder www
+                $realPath = $this->c_module->path().'www/'.$url;
+                if(file_exists($realPath)) {
+                    $url = 'www/'.$url;
+                } else { // Signal error
+                    e('[##] Cannot find CSS resource[##] in path[##]',D_SAMSON_DEBUG, array($this->c_module->id, $matches[2], $this->cResource));
+                }
+            }
 
             //trace($this->c_module->id.'-'.get_class($this->c_module).'-'.$url.'-'.is_a( $this->c_module, ns_classname('ExternalModule','samson\core')));;
 
