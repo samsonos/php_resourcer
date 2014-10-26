@@ -26,12 +26,16 @@ function & route(){	static $_v; return ( $_v = isset($_v) ? $_v : new ResourceRo
  */
 function src( $src = '', $module = NULL ){ echo ResourceRouter::url( $src, $module );}
 
+/** Perform custom simple URL parsing to match needed URL for static resource serving */
+// Get URL path from URL and split with "/"
+$url = explode( '/', parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH));
+$module = isset($url[0]) ? $url[0] : '';
+$method = isset($url[1]) ? $url[1] : '';
+
 /**
  * Special hook to avoid further framework loading if this is static resource request
  */
-if (url()->module() === 'resourcer' && url()->method() != 'table') {
-    // Get module to search for resource
-    $module = url()->method();
+if ($module === 'resourcer' && $method != 'table') {
 
     // Запретим вывод ошибок
     //Error::$OUTPUT = false;
