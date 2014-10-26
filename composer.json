@@ -18,9 +18,9 @@
 	"license":"Open Software License (OSL) v 3.0",
 	"homepage":"http://samsonos.com/",
 	"autoload" : {
-        "classmap" : ["src"],
+        "classmap" : ["src/"],
         "psr-0":{
-            "samson\\resourcer" : "src"
+            "samson\\resourcer" : "src/"
         },
         "files": ["src/global.php"]
     }
