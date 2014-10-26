@@ -28,9 +28,9 @@ function src( $src = '', $module = NULL ){ echo ResourceRouter::url( $src, $modu
 
 /** Perform custom simple URL parsing to match needed URL for static resource serving */
 // Get URL path from URL and split with "/"
-$url = explode( '/', parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH));
-$module = isset($url[0]) ? $url[0] : '';
-$method = isset($url[1]) ? $url[1] : '';
+$url = array_filter(explode('/', parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH)));
+$module = isset($url[1]) ? $url[1] : '';
+$method = isset($url[2]) ? $url[2] : '';
 
 /**
  * Special hook to avoid further framework loading if this is static resource request
@@ -44,11 +44,10 @@ if ($module === 'resourcer' && $method != 'table') {
     s()->async(true);
 
     // Получить путь к ресурсу системы по URL
-    $filename = ResourceRouter::parse( $_GET['p'], $module );
+    $filename = ResourceRouter::parse($_GET['p'], $method);
 
     // Проверим существует ли ресурс реально
-    if( file_exists( $filename ) )
-    {
+    if (file_exists($filename)) {
         // Этот параметр характеризирует время последней модификации ресурса
         // и любые его доп параметры конечно( ПОКА ТАКИХ НЕТ )
         $c_etag = isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ? $_SERVER['HTTP_IF_NONE_MATCH'] : '';
@@ -63,7 +62,7 @@ if ($module === 'resourcer' && $method != 'table') {
         header('Cache-Control:max-age=1800');
 
         // Установим заголовок с текущим значением параметра валидности ресурса
-        header('ETag:' . $s_etag  );
+        header('ETag:' . $s_etag);
 
         // Get file extension
         $extension = pathinfo($filename, PATHINFO_EXTENSION );
