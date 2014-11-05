@@ -40,9 +40,6 @@ if ($module === 'resourcer' && $method != 'table') {
     // Запретим вывод ошибок
     //Error::$OUTPUT = false;
 
-    // Ассинхронный ответ
-    s()->async(true);
-
     // Получить путь к ресурсу системы по URL
     $filename = ResourceRouter::parse($_GET['p'], $method);
 

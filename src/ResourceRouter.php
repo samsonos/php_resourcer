@@ -92,8 +92,8 @@ class ResourceRouter extends ExternalModule
     public function renderer(&$view, $data = array(), iModule $m = null)
     {
         // Define resource urls
-        $css = url()->base().$this->cached['css'];
-        $js = url()->base().$this->cached['js'];
+        $css = url()->base() .str_replace(__SAMSON_PUBLIC_PATH, '',$this->cached['css']);
+        $js = url()->base().str_replace(__SAMSON_PUBLIC_PATH, '',$this->cached['js']);
 
         // TODO: Прорисовка зависит от текущего модуля, сделать єто через параметр прорисовщика
         // If called from compressor
@@ -196,7 +196,7 @@ class ResourceRouter extends ExternalModule
             }
 
             // Save path to resource cache
-            $this->cached[ $rt ] = __SAMSON_CACHE_PATH.'/'.$this->id.'/'.$hash_name;
+            $this->cached[ $rt ] = __SAMSON_CACHE_PATH.$this->id.'/'.$hash_name;
         }
 
         // Subscribe to core rendered event
@@ -214,40 +214,48 @@ class ResourceRouter extends ExternalModule
         {
             $_url = $matches[2];
 
-            // Получим путь к ресурсу используя маршрутизацию
-            $url = str_replace('../','', $matches[2] );
+            // Remove relative path from resource path
+            $url = str_replace('../','', $matches[2]);
+
+            // Remove possible GET parameters from resource path
+            if (($getStart = stripos($url, '?')) !== false) {
+                $url = substr($url, 0, $getStart);
+            }
+
+            // Remove possible HASH parameters from resource path
+            if (($getStart = stripos($url, '#')) !== false) {
+                $url = substr($url, 0, $getStart);
+            }
 
             // Build real path to resource
             $realPath = $this->c_module->path().$url;
             // Try to find path in module root folder
             if (!file_exists($realPath)) {
                 // Build path to "new" module public folder www
-                $realPath = $this->c_module->path().'www/'.$url;
+                $realPath = $this->c_module->path().__SAMSON_PUBLIC_PATH.$url;
+
+                // Try to find path in module Public folder
                 if(file_exists($realPath)) {
                     $url = 'www/'.$url;
                 } else { // Signal error
-                    e('[##] Cannot find CSS resource[##] in path[##]',D_SAMSON_DEBUG, array($this->c_module->id, $matches[2], $this->cResource));
+                    e('[##][##] Cannot find CSS resource[##] in path[##]',D_SAMSON_DEBUG, array($this->c_module->id, $this->c_module->path(), $matches[2], $this->cResource));
                 }
             }
 
             //trace($this->c_module->id.'-'.get_class($this->c_module).'-'.$url.'-'.is_a( $this->c_module, ns_classname('ExternalModule','samson\core')));;
 
             // Always rewrite url's for external modules
-            if( is_a( $this->c_module, ns_classname('ExternalModule','samson\core')) )
-            {
-                $url = self::url( $url, $this->c_module );
+            if (is_a($this->c_module, ns_classname('ExternalModule','samson\core'))) {
+                $url = self::url($url, $this->c_module);
                 //trace('external module url:'.$url);
             }
             // Always rewrite url's for remote web applications
-            else if( __SAMSON_REMOTE_APP )
-            {
-                $url = self::url( $url, $this->c_module );
+            else if (__SAMSON_REMOTE_APP) {
+                $url = self::url( $url, $this->c_module);
             }
             // Do not rewrite url's for local resources
-            else if( is_a($this->c_module, ns_classname('LocalModule','samson\core')))
-            {
+            else if (is_a($this->c_module, ns_classname('LocalModule','samson\core'))) {
                 $url = url()->base().$url;
-                //trace('local module url:'.$url);
             }
 
             return 'url("'.$url.'")';
