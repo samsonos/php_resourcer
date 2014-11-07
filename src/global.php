@@ -27,8 +27,15 @@ function & route(){	static $_v; return ( $_v = isset($_v) ? $_v : new ResourceRo
 function src( $src = '', $module = NULL ){ echo ResourceRouter::url( $src, $module );}
 
 /** Perform custom simple URL parsing to match needed URL for static resource serving */
-// Get URL path from URL and split with "/", remove URL base from path
-$url = array_values(array_filter(explode('/', parse_url(str_replace(__SAMSON_BASE__, '', $_SERVER["REQUEST_URI"]), PHP_URL_PATH))));
+$url = $_SERVER["REQUEST_URI"];
+
+// Remove BASE from url path to support internal web-applications
+if(($basePos = strpos($url, __SAMSON_BASE__)) == 0) {
+    $url = substr($url, strlen(__SAMSON_BASE__));
+}
+
+// Get URL path from URL and split with "/"
+$url = array_values(array_filter(explode('/', parse_url($url, PHP_URL_PATH))));
 $module = isset($url[0]) ? $url[0] : '';
 $method = isset($url[1]) ? $url[1] : '';
 
