@@ -318,7 +318,7 @@ class ResourceRouter extends ExternalModule
         $_module = s()->module( $_module );
 
         // Сформируем URL-маршрут для доступа к ресурсу
-        return 'http://'.$_SERVER['HTTP_HOST'].url()->base().'resourcer/'.($_module->id()!= 'resourcer'?$_module->id():'').'?p='.$path;
+        return url()->base().'resourcer/'.($_module->id()!= 'resourcer'?$_module->id():'').'?p='.$path;
     }
 
     /** Получить реальный путь к ресурсу */
