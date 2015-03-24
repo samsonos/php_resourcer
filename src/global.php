@@ -27,7 +27,7 @@ function & route(){	static $_v; return ( $_v = isset($_v) ? $_v : new ResourceRo
 function src( $src = '', $module = NULL ){ echo ResourceRouter::url( $src, $module );}
 
 /** Perform custom simple URL parsing to match needed URL for static resource serving */
-$url = $_SERVER["REQUEST_URI"];
+$url = isset($_SERVER["REQUEST_URI"]) ? $_SERVER["REQUEST_URI"] : '';
 
 // Remove BASE from url path to support internal web-applications
 if(($basePos = strpos($url, __SAMSON_BASE__)) == 0) {
