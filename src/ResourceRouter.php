@@ -35,6 +35,7 @@ class ResourceRouter extends ExternalModule
     (
         'css' 	=> 'text/css',
         'woff' 	=> 'application/x-font-woff',
+        'woff2' 	=> 'application/x-font-woff2',
         'otf' 	=> 'application/octet-stream',
         'ttf' 	=> 'application/octet-stream',
         'eot' 	=> 'application/vnd.ms-fontobject',
@@ -158,8 +159,7 @@ class ResourceRouter extends ExternalModule
             $path = $hash_name;
 
             // Check if cache file has to be updated
-            if( $this->cache_refresh( $path ) )
-            {
+            if( $this->cache_refresh( $path ) ) {
                 // Read content of resource files
                 $content = '';
                 foreach (s()->load_module_stack as $id => $data) {
@@ -240,7 +240,7 @@ class ResourceRouter extends ExternalModule
                     if(file_exists($realPath)) {
                         $url = 'www/'.$url;
                     } else { // Signal error
-                        e('[##][##] Cannot find CSS resource[##] in path[##]',D_SAMSON_DEBUG, array($this->c_module->id, $this->c_module->path(), $matches[2], $this->cResource));
+                        //e('[##][##] Cannot find CSS resource[##] in path[##]',D_SAMSON_DEBUG, array($this->c_module->id, $realPath, $url, $this->cResource));
                     }
                 }
 
