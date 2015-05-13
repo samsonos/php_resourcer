@@ -2,7 +2,7 @@
 use samson\resourcer\ResourceRouter;
 
 /** Initialize global module context only if SamsonPHP core is loaded */
-if (function_exists('s', false)) {
+if (function_exists('s')) {
     /**
      * Route(Маршрут) - Получить экземпляр класса для работы с маршрутами системы
      * @see ResourceRouter
