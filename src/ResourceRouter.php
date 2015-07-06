@@ -205,52 +205,58 @@ class ResourceRouter extends ExternalModule
         // Register view renderer
         //s()->renderer( array( $this, 'renderer') );
     }
-
-    /** Callback for CSS url rewriting */
+    
+/** Callback for CSS url rewriting */
     public function src_replace_callback( $matches )
     {
         // Если мы нашли шаблон - переберем все найденные патерны
-        if (isset( $matches[2])) {
+        if (isset($matches[2])) {
             // Remove relative path from resource path
             $url = str_replace('../','', $matches[2]);
 
-            // Remove possible GET parameters from resource path
-            if (($getStart = stripos($url, '?')) !== false) {
-                $url = substr($url, 0, $getStart);
-            }
+            // Routes with this module controller do not need changes
+            if(strpos($url, '/'.$this->id.'/') === false) {
 
-            // Remove possible HASH parameters from resource path
-            if (($getStart = stripos($url, '#')) !== false) {
-                $url = substr($url, 0, $getStart);
-            }
-
-            //trace($this->c_module->id.'-'.get_class($this->c_module).'-'.$url.'-'.is_a( $this->c_module, ns_classname('ExternalModule','samson\core')));;
-
-            // Always rewrite url's for external modules and for remote web applications
-            if (is_a($this->c_module, \samson\core\AutoLoader::className('ExternalModule', 'samson\core')) || __SAMSON_REMOTE_APP) {
-                // Build real path to resource
-                $realPath = $this->c_module->path().$url;
-
-                // Try to find path in module root folder
-                if (!file_exists($realPath)) {
-                    // Build path to "new" module public folder www
-                    $realPath = $this->c_module->path().__SAMSON_PUBLIC_PATH.$url;
-
-                    // Try to find path in module Public folder
-                    if(file_exists($realPath)) {
-                        $url = 'www/'.$url;
-                    } else { // Signal error
-                        //e('[##][##] Cannot find CSS resource[##] in path[##]',D_SAMSON_DEBUG, array($this->c_module->id, $realPath, $url, $this->cResource));
-                    }
+                // Remove possible GET parameters from resource path
+                if (($getStart = stripos($url, '?')) !== false) {
+                    $url = substr($url, 0, $getStart);
                 }
 
-                // Rewrite URL using router
-                $url = self::url($url, $this->c_module);
-            } else if (is_a($this->c_module, \samson\core\AutoLoader::className('LocalModule','samson\core'))) {
-                $url = url()->base().$url;
-            }
+                // Remove possible HASH parameters from resource path
+                if (($getStart = stripos($url, '#')) !== false) {
+                    $url = substr($url, 0, $getStart);
+                }
 
-            return 'url("'.$url.'")';
+                //trace($this->c_module->id.'-'.get_class($this->c_module).'-'.$url.'-'.is_a( $this->c_module, ns_classname('ExternalModule','samson\core')));;
+
+                // Always rewrite url's for external modules and for remote web applications
+                if (is_a($this->c_module, \samson\core\AutoLoader::className('ExternalModule', 'samson\core')) || __SAMSON_REMOTE_APP) {
+                    // Build real path to resource
+                    $realPath = $this->c_module->path() . $url;
+
+                    // Try to find path in module root folder
+                    if (!file_exists($realPath)) {
+                        // Build path to "new" module public folder www
+                        $realPath = $this->c_module->path() . __SAMSON_PUBLIC_PATH . $url;
+
+                        // Try to find path in module Public folder
+                        if (file_exists($realPath)) {
+                            $url = 'www/' . $url;
+                        } else { // Signal error
+                            //e('[##][##] Cannot find CSS resource[##] in path[##]',D_SAMSON_DEBUG, array($this->c_module->id, $realPath, $url, $this->cResource));
+                        }
+                    }
+
+                    // Rewrite URL using router
+                    $url = self::url($url, $this->c_module);
+                } else if (is_a($this->c_module, \samson\core\AutoLoader::className('LocalModule', 'samson\core'))) {
+                    $url = url()->base() . $url;
+                }
+
+                return 'url("' . $url . '")';
+            } else {
+                return 'url("'.$matches[2].'")';
+            }
         }
     }
 
