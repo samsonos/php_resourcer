@@ -210,7 +210,7 @@ class ResourceRouter extends ExternalModule
     public function src_replace_callback( $matches )
     {
         // Если мы нашли шаблон - переберем все найденные патерны
-        if (isset($matches[2])) {
+        if (isset($matches[2]) && strpos($matches[2], 'data:') === false) {
             // Remove relative path from resource path
             $url = str_replace('../','', $matches[2]);
 
