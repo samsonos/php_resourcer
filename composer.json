@@ -1,27 +1,39 @@
 {
-	"name":"samsonos/php_resourcer",
-    "description":"SamsonPHP static resources manager module",
-    "keywords": [ "resource", "static" ],
-    "authors":[
+    "name": "samsonos/php_resourcer",
+    "description": "SamsonPHP static resources manager module",
+    "keywords": [
+        "resource",
+        "static"
+    ],
+    "authors": [
         {
-            "name":"Vitaly Iegorov",
-            "email":"egorov@samsonos.com"
+            "name": "Vitaly Iegorov",
+            "email": "egorov@samsonos.com"
         },
         {
-            "name":"Kotenko Nikita",
-            "email":"kotenko@samsonos.com"
+            "name": "Kotenko Nikita",
+            "email": "kotenko@samsonos.com"
         }
     ],
-	"require":{
-        "samsonos/php_core":"*"
+    "require": {
+        "samsonos/php_core": "*"
     },
-	"license":"Open Software License (OSL) v 3.0",
-	"homepage":"http://samsonos.com/",
-	"autoload" : {
-        "classmap" : ["src/"],
-        "psr-0":{
-            "samson\\resourcer" : "src/"
+    "license": "Open Software License (OSL) v 3.0",
+    "homepage": "http://samsonos.com/",
+    "autoload": {
+        "classmap": [
+            "src/"
+        ],
+        "psr-0": {
+            "samson\\resourcer": "src/"
         },
-        "files": ["src/global.php"]
+        "files": [
+            "src/global.php"
+        ]
+    },
+    "config": {
+        "github-protocols": [
+            "https"
+        ]
     }
 }
