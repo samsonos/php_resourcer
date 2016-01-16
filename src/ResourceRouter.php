@@ -106,6 +106,7 @@ class ResourceRouter extends ExternalModule
         // TODO: Прорисовка зависит от текущего модуля, сделать єто через параметр прорисовщика
         // If called from compressor
         if ($m->id() == 'compressor' || $m->id() == 'deploy') {
+            $tempateId = isset($this->cached['css'][$data['file']]) ? $data['file'] : 'default';
             $css = url()->base() . basename($this->cached['css'][$tempateId]);
             $js  = url()->base() . basename($this->cached['js'][$tempateId]);
         }
