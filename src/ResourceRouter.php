@@ -57,7 +57,8 @@ class ResourceRouter extends ExternalModule
         'xls'   => 'application/msexcel',
         'xls'   => 'application/vnd.ms-excel',
         'xlsx'  => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'docx'  => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        'docx'  => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'svg'   => 'image/svg+xml'
     );
 
     /** Идентификатор модуля */
