@@ -282,6 +282,8 @@ class ResourceRouter extends ExternalModule
             } else {
                 return 'url("' . $matches[2] . '")';
             }
+        } else { // Just return original value
+            return $matches[0];
         }
     }
 
