@@ -200,6 +200,41 @@ class ResourceRouter extends ExternalModule
         }
     }
 
+    public function prepare(array $params = array())
+    {
+        Event::subscribe(\samsonphp\view\Module::EVENT_VIEW_HANDLER, array($this, 'rewriteSrc'));
+    }
+
+    /**
+     * Обработчик замены роутера ресурсов
+     * @param array $matches Найденые совпадения по шаблону
+     * @return string Обработанный вариант пути к ресурсу
+     */
+    public function rewriteSrcCallback($matches)
+    {
+        // Получим относительный путь к ресурсу
+        $path = trim($matches['path']);
+
+        // Путь к модуля после сжимания
+        $module_path = (isset($matches['module']) && strlen($matches['module']) > 0) ? $matches['module'] . '/' :  'local/';
+
+        // Если передана переменная мы не можем гарантировать её значение
+        if (strpos($path, '$') !== false) $path = '<?php echo \'' . $module_path . '\'.' . $path . '; ?>';
+        // Просто строка
+        else $path = $module_path . $path;
+
+        return $path;
+        //e('Файл представления ## - Обращение к роутеру ресурсов через переменную ##', E_SAMSON_SNAPSHOT_ERROR, array($view_path, $path));
+    }
+
+    public function rewriteSrc(&$viewCode)
+    {
+        $viewCode = preg_replace_callback(
+            '/(<\?php)*\s*src\s*\(\s*(\'|\")?(?<path>[^\'\"\?\;\)]+)(\'|\")?(\s*,\s*(\'|\")(?<module>[^\'\"\)]+)(\'|\"))?\s*\)\;?(\s*\?>)?/uis',
+            array($this, 'rewriteSrcCallback'),
+            $viewCode
+        );
+    }
 
     /**    @see ModuleConnector::init() */
     public function init(array $params = array())
@@ -350,8 +385,9 @@ class ResourceRouter extends ExternalModule
      *
      * @return string Унифицированный URL для получения ресурса веб-приложения/модуля
      */
-    public static function url($path, $_module = null)
+    public static function url($path, $_module)
     {
+        // TODO: rewrite it
         // Безопасно получим переданный модуль
         $_module = s()->module($_module);
 
