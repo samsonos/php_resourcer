@@ -27,7 +27,8 @@ class ResourceRouter extends ExternalModule
 {
     /** Event showing that new gather resource file was created */
     const EVENT_CREATED = 'resource.created';
-
+    /** Event showing that new gather resource file was created */
+    const EVENT_START_GENERATE_RESOURCES = 'resource.start.generate.resources';
     /** Коллекция маршрутов к модулям */
     public static $routes = array();
 
@@ -213,7 +214,14 @@ class ResourceRouter extends ExternalModule
             file_put_contents($map_file, serialize(self::$routes));
         }
 
-        $this->generateResources($this->system->module_stack);
+        $moduleList = $this->system->module_stack;
+
+        Event::fire(self::EVENT_START_GENERATE_RESOURCES, array(&$moduleList));
+        //trace(array_keys($moduleList));die;
+
+        $this->generateResources($moduleList);
+
+        //$this->generateResources($this->system->module_stack);
 
         // Subscribe to core rendered event
         s()->subscribe('core.rendered', array($this, 'renderer'));
